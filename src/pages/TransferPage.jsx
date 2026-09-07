@@ -1,16 +1,49 @@
-import { DomainPlaceholder } from '../components/common/DomainPlaceholder'
+import { useState } from 'react'
+import TransferRecipient from '../components/transfer/TransferRecipient'
+import TransferAmount from '../components/transfer/TransferAmount'
+import TransferConfirm from '../components/transfer/TransferConfirm'
+import TransferComplete from '../components/transfer/TransferComplete'
 
 /**
  * 이체 도메인 페이지. 라우트: `/transfer`
  *
- * 계좌 이체 흐름을 담당할 빈 화면이다.
- * 지금은 탭 이동 확인용이며, 이체 폼은 이후 이슈에서 구현한다.
+ * 계좌 이체의 전체 흐름과 단계 상태를 관리한다.
+ * 각 단계는 별도 컴포넌트로 구성하며 현재 단계에 해당하는 컴포넌트만 화면에 렌더링한다.
+ *
+ * 이체 단계:
+ * 1. 받는 계좌 입력
+ * 2. 이체 금액 입력
+ * 3. 이체 정보 확인
+ * 4. 이체 완료
  */
 export default function TransferPage() {
+  const [step, setStep] = useState(1)
+
   return (
-    <DomainPlaceholder
-      title="이체"
-      description="이체 화면입니다. 보내는 계좌, 받는 계좌, 금액 입력은 이후 이슈에서 구현합니다."
-    />
-  );
+    <>
+      {step === 1 && (
+        <TransferRecipient
+          onNext={() => setStep(2)}
+        />
+      )}
+
+      {step === 2 && (
+        <TransferAmount
+          onNext={() => setStep(3)}
+          onPrev={() => setStep(1)}
+        />
+      )}
+
+      {step === 3 && (
+        <TransferConfirm
+          onNext={() => setStep(4)}
+          onPrev={() => setStep(2)}
+        />
+      )}
+
+      {step === 4 && (
+        <TransferComplete />
+      )}
+    </>
+  )
 }
