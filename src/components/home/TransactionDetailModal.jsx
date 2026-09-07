@@ -9,14 +9,14 @@ export function TransactionDetailModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/45"
+      className="absolute inset-0 z-50 flex items-end bg-black/45"
       onClick={onClose}
     >
       <section
         role="dialog"
         aria-modal="true"
         aria-labelledby="transaction-title"
-        className="w-full max-w-[430px] rounded-t-[22px] bg-white px-[22px] pb-[26px] pt-[10px]"
+        className="w-full rounded-t-[22px] bg-white px-[22px] pb-[26px] pt-[10px]"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="mx-auto mb-[18px] mt-[6px] h-1 w-9 rounded-full bg-slate-300" />
