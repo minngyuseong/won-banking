@@ -1,31 +1,11 @@
-import { useEffect, useState } from 'react'
-import { getAccount } from '../../api/accountApi'
-
 /**
  * 이체 2단계.
  *
- * 이체할 금액을 입력하고 출금 계좌의 잔액을 기준으로
+ * 선택한 출금 계좌의 잔액을 기준으로 이체 금액을 입력하고
  * 최소 이체 금액 및 잔액 초과 여부를 검증한다.
- *
- * 유효한 금액인 경우에만 다음 단계로 이동할 수 있다.
  */
 export default function TransferAmount({ transfer, setTransfer, onNext, onPrev }) {
-  const [account, setAccount] = useState(null)
-  const [error, setError] = useState('')
-
-  // 선택한 출금 계좌의 최신 정보를 조회한다.
-  useEffect(() => {
-    async function loadAccount() {
-      try {
-        const data = await getAccount(transfer.fromAccountId)
-        setAccount(data)
-      } catch (error) {
-        setError(error.message)
-      }
-    }
-
-    if (transfer.fromAccountId) loadAccount()
-  }, [transfer.fromAccountId])
+  const account = transfer.fromAccount
 
   const validateAmount = (amount) => {
     if (!account || amount === 0) return ''
@@ -41,25 +21,31 @@ export default function TransferAmount({ transfer, setTransfer, onNext, onPrev }
     return ''
   }
 
+  const error = validateAmount(transfer.amount)
+
   const handleAmountChange = (e) => {
     const raw = e.target.value.replace(/[^0-9]/g, '')
     const amount = Number(raw)
 
-    setTransfer(prev => ({ ...prev, amount }))
-    setError(validateAmount(amount))
+    setTransfer(prev => ({
+      ...prev,
+      amount,
+    }))
   }
 
   const handleQuickAmount = (value) => {
     if (value === 'clear') {
-      setTransfer(prev => ({ ...prev, amount: 0 }))
-      setError('')
+      setTransfer(prev => ({
+        ...prev,
+        amount: 0,
+      }))
       return
     }
 
-    const amount = transfer.amount + Number(value)
-
-    setTransfer(prev => ({ ...prev, amount }))
-    setError(validateAmount(amount))
+    setTransfer(prev => ({
+      ...prev,
+      amount: prev.amount + Number(value),
+    }))
   }
 
   const isValid =
@@ -76,7 +62,7 @@ export default function TransferAmount({ transfer, setTransfer, onNext, onPrev }
       <p className="mb-5 mt-1 text-[12.5px] text-[#6b7280]">
         {account
           ? `${account.nickname} 잔액 ${account.balance.toLocaleString()}원 중에서 보냅니다`
-          : '출금 계좌 정보를 불러오는 중입니다'}
+          : '출금 계좌 정보를 확인할 수 없습니다'}
       </p>
 
       <div className="mb-[18px]">
@@ -108,35 +94,19 @@ export default function TransferAmount({ transfer, setTransfer, onNext, onPrev }
         )}
 
         <div className="mt-[10px] flex flex-wrap gap-[6px]">
-          <button
-            type="button"
-            onClick={() => handleQuickAmount(10000)}
-            className="rounded-lg border border-[#e6e9ed] bg-[#f5f7f9] px-[11px] py-[6px] text-[12px] font-bold text-[#40464d]"
-          >
+          <button type="button" onClick={() => handleQuickAmount(10000)} className="rounded-lg border border-[#e6e9ed] bg-[#f5f7f9] px-[11px] py-[6px] text-[12px] font-bold text-[#40464d]">
             +1만
           </button>
 
-          <button
-            type="button"
-            onClick={() => handleQuickAmount(50000)}
-            className="rounded-lg border border-[#e6e9ed] bg-[#f5f7f9] px-[11px] py-[6px] text-[12px] font-bold text-[#40464d]"
-          >
+          <button type="button" onClick={() => handleQuickAmount(50000)} className="rounded-lg border border-[#e6e9ed] bg-[#f5f7f9] px-[11px] py-[6px] text-[12px] font-bold text-[#40464d]">
             +5만
           </button>
 
-          <button
-            type="button"
-            onClick={() => handleQuickAmount(100000)}
-            className="rounded-lg border border-[#e6e9ed] bg-[#f5f7f9] px-[11px] py-[6px] text-[12px] font-bold text-[#40464d]"
-          >
+          <button type="button" onClick={() => handleQuickAmount(100000)} className="rounded-lg border border-[#e6e9ed] bg-[#f5f7f9] px-[11px] py-[6px] text-[12px] font-bold text-[#40464d]">
             +10만
           </button>
 
-          <button
-            type="button"
-            onClick={() => handleQuickAmount('clear')}
-            className="rounded-lg border border-[#e6e9ed] bg-[#f5f7f9] px-[11px] py-[6px] text-[12px] font-bold text-[#40464d]"
-          >
+          <button type="button" onClick={() => handleQuickAmount('clear')} className="rounded-lg border border-[#e6e9ed] bg-[#f5f7f9] px-[11px] py-[6px] text-[12px] font-bold text-[#40464d]">
             직접입력
           </button>
         </div>

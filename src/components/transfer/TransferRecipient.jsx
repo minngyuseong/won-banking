@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { getAccounts } from '../../api/accountApi'
 import { getBanks, lookupOwner } from '../../api/transferApi'
+import { SelectBox } from '../common/SelectBox'
 
 /**
  * 이체 1단계.
@@ -19,7 +20,7 @@ export default function TransferRecipient({ transfer, setTransfer, onNext }) {
 
   const requestSeq = useRef(0)
 
-  // 출금 계좌와 은행 목록 조회
+  // 화면 진입 시 출금 계좌와 이체 가능 은행 목록 조회
   useEffect(() => {
     async function loadData() {
       try {
@@ -31,11 +32,19 @@ export default function TransferRecipient({ transfer, setTransfer, onNext }) {
         setAccounts(accountData)
         setBanks(bankData)
 
-        setTransfer(prev => ({
-          ...prev,
-          fromAccountId: prev.fromAccountId || accountData[0]?.id || '',
-          toBank: prev.toBank || bankData[0]?.name || '',
-        }))
+        setTransfer(prev => {
+          const defaultAccount =
+            accountData.find(account => account.id === prev.fromAccountId) ||
+            accountData[0] ||
+            null
+
+          return {
+            ...prev,
+            fromAccountId: defaultAccount?.id || '',
+            fromAccount: defaultAccount,
+            toBank: prev.toBank || bankData[0]?.name || '',
+          }
+        })
       } catch (error) {
         setError(error.message)
       }
@@ -44,12 +53,11 @@ export default function TransferRecipient({ transfer, setTransfer, onNext }) {
     loadData()
   }, [])
 
-  // 은행 또는 계좌번호 변경 시 예금주 재검증
+  // 은행 또는 계좌번호가 변경되면 예금주를 다시 검증
   useEffect(() => {
-    const accountNo = transfer.toAccountNo
     const bank = transfer.toBank
+    const accountNo = transfer.toAccountNo
 
-    // 기존 조회 결과는 입력 조건이 변경되는 즉시 무효화
     setTransfer(prev =>
       prev.ownerName ? { ...prev, ownerName: '' } : prev
     )
@@ -57,7 +65,6 @@ export default function TransferRecipient({ transfer, setTransfer, onNext }) {
 
     const currentSeq = ++requestSeq.current
 
-    // 조회 조건 미충족
     if (!bank || accountNo.length < 10) {
       setIsLookingUp(false)
       return
@@ -69,7 +76,7 @@ export default function TransferRecipient({ transfer, setTransfer, onNext }) {
       try {
         const data = await lookupOwner(bank, accountNo)
 
-        // 이후 다른 입력이 발생했다면 이전 응답은 무시
+        // 이후 입력값이 변경된 경우 이전 응답은 무시
         if (currentSeq !== requestSeq.current) return
 
         setTransfer(prev => ({
@@ -89,20 +96,26 @@ export default function TransferRecipient({ transfer, setTransfer, onNext }) {
     return () => clearTimeout(timer)
   }, [transfer.toBank, transfer.toAccountNo])
 
-  const handleFromAccountChange = (e) => {
+  // 출금 계좌 변경
+  const handleFromAccountChange = (accountId) => {
+    const account = accounts.find(account => account.id === accountId)
+
     setTransfer(prev => ({
       ...prev,
-      fromAccountId: e.target.value,
+      fromAccountId: account?.id || '',
+      fromAccount: account || null,
     }))
   }
 
-  const handleBankChange = (e) => {
+  // 받는 은행 변경
+  const handleBankChange = (bank) => {
     setTransfer(prev => ({
       ...prev,
-      toBank: e.target.value,
+      toBank: bank,
     }))
   }
 
+  // 계좌번호는 숫자만 입력
   const handleAccountNoChange = (e) => {
     const accountNo = e.target.value.replace(/[^0-9]/g, '')
 
@@ -114,6 +127,16 @@ export default function TransferRecipient({ transfer, setTransfer, onNext }) {
 
   const inputClass =
     'w-full rounded-[12px] border-[1.5px] border-transparent bg-[#f5f7f9] px-[14px] py-[13px] text-[14.5px] font-semibold text-[#1a1d21] outline-none transition focus:border-[#1e88d6] focus:bg-white'
+
+  const accountOptions = accounts.map(account => ({
+    value: account.id,
+    label: `${account.nickname} (${account.balance.toLocaleString()}원)`,
+  }))
+
+  const bankOptions = banks.map(bank => ({
+    value: bank.name,
+    label: bank.name,
+  }))
 
   return (
     <div className="bg-white px-5 py-2">
@@ -129,40 +152,33 @@ export default function TransferRecipient({ transfer, setTransfer, onNext }) {
         <label className="mb-2 block text-[12px] font-bold text-[#40464d]">
           출금 계좌
         </label>
-        <select
+
+        <SelectBox
           value={transfer.fromAccountId}
+          options={accountOptions}
           onChange={handleFromAccountChange}
-          className={inputClass}
-        >
-          {accounts.map(account => (
-            <option key={account.id} value={account.id}>
-              {account.nickname} ({account.balance.toLocaleString()}원)
-            </option>
-          ))}
-        </select>
+          placeholder="출금 계좌를 선택해주세요"
+        />
       </div>
 
       <div className="mb-[18px]">
         <label className="mb-2 block text-[12px] font-bold text-[#40464d]">
           받는 은행
         </label>
-        <select
+
+        <SelectBox
           value={transfer.toBank}
+          options={bankOptions}
           onChange={handleBankChange}
-          className={inputClass}
-        >
-          {banks.map(bank => (
-            <option key={bank.code} value={bank.name}>
-              {bank.name}
-            </option>
-          ))}
-        </select>
+          placeholder="은행을 선택해주세요"
+        />
       </div>
 
       <div className="mb-[18px]">
         <label className="mb-2 block text-[12px] font-bold text-[#40464d]">
           계좌번호
         </label>
+
         <input
           type="text"
           inputMode="numeric"

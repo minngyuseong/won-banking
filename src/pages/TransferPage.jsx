@@ -21,14 +21,15 @@ export default function TransferPage() {
   const [step, setStep] = useState(1)
   const [transfer, setTransfer] = useState({
     fromAccountId: '',
-    toBank: '우리은행',
+    fromAccount: null,
+    toBank: '',
     toAccountNo: '',
     ownerName: '',
     amount: 0,
   })
 
   return (
-    <>
+    <div className="min-h-full bg-white">
       {step === 1 && (
         <TransferRecipient
           transfer={transfer}
@@ -54,7 +55,9 @@ export default function TransferPage() {
         />
       )}
 
-      {step === 4 && <TransferComplete />}
-    </>
+      {step === 4 && (
+        <TransferComplete transfer={transfer} />
+      )}
+    </div>
   )
 }
