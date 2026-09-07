@@ -1,3 +1,4 @@
+import logo from "../../assets/logo.png";
 import { BellIcon, MenuIcon } from "./icons";
 
 /**
@@ -10,13 +11,12 @@ export function Header() {
   return (
     <header className="flex shrink-0 items-center justify-between border-b border-slate-100 bg-white px-4 py-3">
       <div className="flex items-center gap-2">
-        {/* 브랜드 마크: 파란 사각 안에 W */}
-        <div
-          className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand text-sm font-bold text-white"
-          aria-hidden="true"
-        >
-          W
-        </div>
+        {/* Vite가 src/assets/logo.png를 번들에 넣고, 해시된 URL을 만들어 준다. */}
+        <img
+          src={logo}
+          alt="우리금융그룹"
+          className="h-6 w-6 rounded-lg object-contain"
+        />
         <h1 className="text-[17px] font-bold tracking-tight text-brand-navy">
           WON 실습뱅킹
         </h1>
