@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router-dom'
-import { BottomNav } from '../components/BottomNav'
-import { Header } from '../components/Header'
+import { BottomNav } from '../components/common/BottomNav'
+import { Header } from '../components/common/Header'
 
 /**
  * 앱 전역 레이아웃.
