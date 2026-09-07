@@ -1,6 +1,8 @@
 import { Outlet } from 'react-router-dom'
 import { BottomNav } from '../components/common/BottomNav'
 import { Header } from '../components/common/Header'
+import { PhoneFrame } from '../components/common/PhoneFrame'
+import { ToastProvider } from '../components/common/Toast'
 
 /**
  * 앱 전역 레이아웃.
@@ -14,15 +16,14 @@ import { Header } from '../components/common/Header'
  */
 export function AppLayout() {
   return (
-    <div className="min-h-svh bg-slate-200">
-      {/* 데스크톱에서도 모바일 폭을 유지해 뱅킹 앱 레이아웃을 맞춘다. */}
-      <div className="mx-auto flex h-svh w-full max-w-[430px] flex-col bg-white shadow-sm">
+    <PhoneFrame>
+      <ToastProvider>
         <Header />
         <main className="min-h-0 flex-1 overflow-y-auto bg-surface">
           <Outlet />
         </main>
         <BottomNav />
-      </div>
-    </div>
+      </ToastProvider>
+    </PhoneFrame>
   )
 }
