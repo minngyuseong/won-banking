@@ -8,5 +8,5 @@ export function DomainPlaceholder({ title, description }) {
       <h2 className="text-xl font-bold text-slate-800">{title}</h2>
       <p className="mt-2 text-sm leading-6 text-slate-500">{description}</p>
     </section>
-  )
+  );
 }

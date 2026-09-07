@@ -1,4 +1,4 @@
-import { DomainPlaceholder } from '../components/DomainPlaceholder'
+import { DomainPlaceholder } from "../components/DomainPlaceholder";
 
 /**
  * 이체 도메인 페이지. 라우트: `/transfer`
@@ -12,5 +12,5 @@ export default function TransferPage() {
       title="이체"
       description="이체 화면입니다. 보내는 계좌, 받는 계좌, 금액 입력은 이후 이슈에서 구현합니다."
     />
-  )
+  );
 }

@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { BOTTOM_TABS } from '../constants/navigation'
+import { BOTTOM_TABS } from '../../constants/navigation'
 import { AllIcon, HistoryIcon, HomeIcon, TransferIcon } from './icons'
 
 const TAB_ICONS = {

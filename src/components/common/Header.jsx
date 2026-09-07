@@ -1,4 +1,4 @@
-import { BellIcon, MenuIcon } from './icons'
+import { BellIcon, MenuIcon } from "./icons";
 
 /**
  * 모든 도메인 페이지 상단에 고정되는 공통 헤더.
@@ -31,5 +31,5 @@ export function Header() {
         </button>
       </div>
     </header>
-  )
+  );
 }
