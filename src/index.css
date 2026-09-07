@@ -1,1 +1,17 @@
 @import "tailwindcss";
+
+/*
+  WON 실습뱅킹 공통 색상.
+  헤더 로고/활성 탭, 알림 아이콘, 비활성 탭에 재사용한다.
+*/
+@theme {
+  --color-brand: #2f6ae0;
+  --color-brand-navy: #1e4bb3;
+  --color-bell: #e4b23a;
+  --color-surface: #f3f5f8;
+  --color-nav-inactive: #9aa3b2;
+}
+
+body {
+  margin: 0;
+}
