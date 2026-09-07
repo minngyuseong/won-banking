@@ -6,9 +6,10 @@ import { getBanks, lookupOwner } from '../../api/transferApi'
  * 이체 1단계.
  *
  * 출금 계좌와 받는 계좌 정보를 입력하고
- * 입력한 은행과 계좌번호를 기준으로 예금주를 조회한다.
+ * 은행과 계좌번호 조합으로 예금주를 확인한다.
  *
- * 예금주 확인이 완료된 경우에만 다음 단계로 이동할 수 있다.
+ * 은행 또는 계좌번호가 변경되면 기존 조회 결과를 초기화하고
+ * 현재 입력값을 기준으로 예금주를 다시 조회한다.
  */
 export default function TransferRecipient({ transfer, setTransfer, onNext }) {
   const [accounts, setAccounts] = useState([])
@@ -16,10 +17,9 @@ export default function TransferRecipient({ transfer, setTransfer, onNext }) {
   const [error, setError] = useState('')
   const [isLookingUp, setIsLookingUp] = useState(false)
 
-  const lookupTimer = useRef(null)
   const requestSeq = useRef(0)
 
-  // 화면 진입 시 출금 계좌와 이체 가능 은행 목록 조회
+  // 출금 계좌와 은행 목록 조회
   useEffect(() => {
     async function loadData() {
       try {
@@ -42,65 +42,74 @@ export default function TransferRecipient({ transfer, setTransfer, onNext }) {
     }
 
     loadData()
-
-    return () => clearTimeout(lookupTimer.current)
   }, [])
 
-  const handleFromAccountChange = (e) => {
-    setTransfer(prev => ({ ...prev, fromAccountId: e.target.value }))
-  }
+  // 은행 또는 계좌번호 변경 시 예금주 재검증
+  useEffect(() => {
+    const accountNo = transfer.toAccountNo
+    const bank = transfer.toBank
 
-  // 은행이 변경되면 기존 예금주 확인 결과는 무효화
-  const handleBankChange = (e) => {
-    requestSeq.current += 1
-    clearTimeout(lookupTimer.current)
-
-    setTransfer(prev => ({
-      ...prev,
-      toBank: e.target.value,
-      ownerName: '',
-    }))
-
+    // 기존 조회 결과는 입력 조건이 변경되는 즉시 무효화
+    setTransfer(prev =>
+      prev.ownerName ? { ...prev, ownerName: '' } : prev
+    )
     setError('')
-    setIsLookingUp(false)
-  }
 
-  // 계좌번호는 숫자만 입력받고, 일정 길이 이상이면 예금주 조회
-  const handleAccountNoChange = (e) => {
-    const accountNo = e.target.value.replace(/[^0-9]/g, '')
+    const currentSeq = ++requestSeq.current
 
-    requestSeq.current += 1
-    const currentSeq = requestSeq.current
-    clearTimeout(lookupTimer.current)
-
-    setTransfer(prev => ({
-      ...prev,
-      toAccountNo: accountNo,
-      ownerName: '',
-    }))
-
-    setError('')
-    setIsLookingUp(false)
-
-    if (accountNo.length < 10) return
+    // 조회 조건 미충족
+    if (!bank || accountNo.length < 10) {
+      setIsLookingUp(false)
+      return
+    }
 
     setIsLookingUp(true)
 
-    lookupTimer.current = setTimeout(async () => {
+    const timer = setTimeout(async () => {
       try {
-        const data = await lookupOwner(transfer.toBank, accountNo)
+        const data = await lookupOwner(bank, accountNo)
 
-        // 입력값이 변경된 후 도착한 이전 요청의 응답은 무시
+        // 이후 다른 입력이 발생했다면 이전 응답은 무시
         if (currentSeq !== requestSeq.current) return
 
-        setTransfer(prev => ({ ...prev, ownerName: data.ownerName }))
+        setTransfer(prev => ({
+          ...prev,
+          ownerName: data.ownerName,
+        }))
       } catch (error) {
         if (currentSeq !== requestSeq.current) return
         setError(error.message)
       } finally {
-        if (currentSeq === requestSeq.current) setIsLookingUp(false)
+        if (currentSeq === requestSeq.current) {
+          setIsLookingUp(false)
+        }
       }
     }, 400)
+
+    return () => clearTimeout(timer)
+  }, [transfer.toBank, transfer.toAccountNo])
+
+  const handleFromAccountChange = (e) => {
+    setTransfer(prev => ({
+      ...prev,
+      fromAccountId: e.target.value,
+    }))
+  }
+
+  const handleBankChange = (e) => {
+    setTransfer(prev => ({
+      ...prev,
+      toBank: e.target.value,
+    }))
+  }
+
+  const handleAccountNoChange = (e) => {
+    const accountNo = e.target.value.replace(/[^0-9]/g, '')
+
+    setTransfer(prev => ({
+      ...prev,
+      toAccountNo: accountNo,
+    }))
   }
 
   const inputClass =
@@ -117,8 +126,14 @@ export default function TransferRecipient({ transfer, setTransfer, onNext }) {
       </p>
 
       <div className="mb-[18px]">
-        <label className="mb-2 block text-[12px] font-bold text-[#40464d]">출금 계좌</label>
-        <select value={transfer.fromAccountId} onChange={handleFromAccountChange} className={inputClass}>
+        <label className="mb-2 block text-[12px] font-bold text-[#40464d]">
+          출금 계좌
+        </label>
+        <select
+          value={transfer.fromAccountId}
+          onChange={handleFromAccountChange}
+          className={inputClass}
+        >
           {accounts.map(account => (
             <option key={account.id} value={account.id}>
               {account.nickname} ({account.balance.toLocaleString()}원)
@@ -128,8 +143,14 @@ export default function TransferRecipient({ transfer, setTransfer, onNext }) {
       </div>
 
       <div className="mb-[18px]">
-        <label className="mb-2 block text-[12px] font-bold text-[#40464d]">받는 은행</label>
-        <select value={transfer.toBank} onChange={handleBankChange} className={inputClass}>
+        <label className="mb-2 block text-[12px] font-bold text-[#40464d]">
+          받는 은행
+        </label>
+        <select
+          value={transfer.toBank}
+          onChange={handleBankChange}
+          className={inputClass}
+        >
           {banks.map(bank => (
             <option key={bank.code} value={bank.name}>
               {bank.name}
@@ -139,17 +160,22 @@ export default function TransferRecipient({ transfer, setTransfer, onNext }) {
       </div>
 
       <div className="mb-[18px]">
-        <label className="mb-2 block text-[12px] font-bold text-[#40464d]">계좌번호</label>
+        <label className="mb-2 block text-[12px] font-bold text-[#40464d]">
+          계좌번호
+        </label>
         <input
           type="text"
+          inputMode="numeric"
           value={transfer.toAccountNo}
           onChange={handleAccountNoChange}
-          placeholder="- 없이 숫자만 입력 (예: 1002123456789)"
+          placeholder="- 없이 숫자만 입력"
           className={inputClass}
         />
 
         {isLookingUp && (
-          <p className="mt-[6px] text-[11.5px] text-[#6b7280]">예금주 조회 중...</p>
+          <p className="mt-[6px] text-[11.5px] text-[#6b7280]">
+            예금주 조회 중...
+          </p>
         )}
 
         {transfer.ownerName && (
@@ -159,7 +185,9 @@ export default function TransferRecipient({ transfer, setTransfer, onNext }) {
         )}
 
         {error && (
-          <p className="mt-[6px] text-[11.5px] text-[#e8483a]">{error}</p>
+          <p className="mt-[6px] text-[11.5px] text-[#e8483a]">
+            {error}
+          </p>
         )}
       </div>
 
