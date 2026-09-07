@@ -1,4 +1,4 @@
-import { DomainPlaceholder } from '../components/DomainPlaceholder'
+import { DomainPlaceholder } from '../components/common/DomainPlaceholder'
 
 /**
  * 거래내역 도메인 페이지. 라우트: `/history`

@@ -1,4 +1,4 @@
-import { DomainPlaceholder } from "../components/DomainPlaceholder";
+import { DomainPlaceholder } from '../components/common/DomainPlaceholder'
 
 /**
  * 이체 도메인 페이지. 라우트: `/transfer`
