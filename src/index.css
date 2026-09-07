@@ -16,3 +16,10 @@
 body {
   margin: 0;
 }
+
+/* 헤더 앱 이름 전용. Google Fonts Bagel Fat One */
+.bagel-fat-one-regular {
+  font-family: "Bagel Fat One", system-ui;
+  font-weight: 400;
+  font-style: normal;
+}

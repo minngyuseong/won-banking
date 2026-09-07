@@ -13,7 +13,7 @@ export function PhoneFrame({ children }) {
         {children}
       </div>
     </div>
-  )
+  );
 }
 
 /**
@@ -30,7 +30,7 @@ function StatusBar() {
         <BatteryIcon />
       </div>
     </div>
-  )
+  );
 }
 
 function SignalIcon() {
@@ -46,17 +46,12 @@ function SignalIcon() {
       <rect x="10" y="2" width="3" height="10" rx="0.5" />
       <rect x="15" y="0" width="3" height="12" rx="0.5" opacity="0.35" />
     </svg>
-  )
+  );
 }
 
 function BatteryIcon() {
   return (
-    <svg
-      className="h-3 w-6"
-      viewBox="0 0 25 12"
-      fill="none"
-      aria-hidden="true"
-    >
+    <svg className="h-3 w-6" viewBox="0 0 25 12" fill="none" aria-hidden="true">
       <rect
         x="0.5"
         y="0.5"
@@ -67,7 +62,14 @@ function BatteryIcon() {
         strokeWidth="1"
       />
       <rect x="2" y="2" width="16" height="8" rx="1.2" fill="currentColor" />
-      <rect x="22.5" y="3.5" width="2" height="5" rx="0.8" fill="currentColor" />
+      <rect
+        x="22.5"
+        y="3.5"
+        width="2"
+        height="5"
+        rx="0.8"
+        fill="currentColor"
+      />
     </svg>
-  )
+  );
 }

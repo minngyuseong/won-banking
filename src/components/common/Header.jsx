@@ -20,7 +20,7 @@ export function Header() {
           alt="우리금융그룹"
           className="h-8 w-8 rounded-lg object-contain"
         />
-        <h1 className="text-[17px] font-bold tracking-tight text-brand-navy">
+        <h1 className="bagel-fat-one-regular text-[22px] tracking-tight text-brand-navy">
           WON 실습뱅킹
         </h1>
       </div>
