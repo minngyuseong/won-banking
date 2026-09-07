@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { getAccounts } from '../../api/accountApi'
 import { getBanks, lookupOwner } from '../../api/transferApi'
+import { formatAccountNo } from '../../utils/accountFormatter'
 import { SelectBox } from '../common/SelectBox'
 
 /**
@@ -53,7 +54,7 @@ export default function TransferRecipient({ transfer, setTransfer, onNext }) {
     loadData()
   }, [])
 
-  // 은행 또는 계좌번호가 변경되면 예금주를 다시 검증
+  // 은행 또는 계좌번호 변경 시 현재 조합으로 예금주 재조회
   useEffect(() => {
     const bank = transfer.toBank
     const accountNo = transfer.toAccountNo
@@ -61,10 +62,11 @@ export default function TransferRecipient({ transfer, setTransfer, onNext }) {
     setTransfer(prev =>
       prev.ownerName ? { ...prev, ownerName: '' } : prev
     )
-    setError('')
 
+    setError('')
     const currentSeq = ++requestSeq.current
 
+    // 조회하기에 계좌번호가 너무 짧으면 API를 호출하지 않음
     if (!bank || accountNo.length < 10) {
       setIsLookingUp(false)
       return
@@ -76,7 +78,7 @@ export default function TransferRecipient({ transfer, setTransfer, onNext }) {
       try {
         const data = await lookupOwner(bank, accountNo)
 
-        // 이후 입력값이 변경된 경우 이전 응답은 무시
+        // 조회 중 은행이나 계좌번호가 다시 변경된 경우 이전 결과 무시
         if (currentSeq !== requestSeq.current) return
 
         setTransfer(prev => ({
@@ -96,7 +98,7 @@ export default function TransferRecipient({ transfer, setTransfer, onNext }) {
     return () => clearTimeout(timer)
   }, [transfer.toBank, transfer.toAccountNo])
 
-  // 출금 계좌 변경
+  // 출금 계좌 변경 시 계좌 객체도 함께 저장
   const handleFromAccountChange = (accountId) => {
     const account = accounts.find(account => account.id === accountId)
 
@@ -115,7 +117,7 @@ export default function TransferRecipient({ transfer, setTransfer, onNext }) {
     }))
   }
 
-  // 계좌번호는 숫자만 입력
+  // 화면에는 '-'가 표시되지만 실제 상태에는 숫자만 저장
   const handleAccountNoChange = (e) => {
     const accountNo = e.target.value.replace(/[^0-9]/g, '')
 
@@ -133,6 +135,7 @@ export default function TransferRecipient({ transfer, setTransfer, onNext }) {
     label: `${account.nickname} (${account.balance.toLocaleString()}원)`,
   }))
 
+  // value도 bank.name으로 사용해야 은행 변경 시 계좌번호 포맷이 즉시 변경된다.
   const bankOptions = banks.map(bank => ({
     value: bank.name,
     label: bank.name,
@@ -182,9 +185,9 @@ export default function TransferRecipient({ transfer, setTransfer, onNext }) {
         <input
           type="text"
           inputMode="numeric"
-          value={transfer.toAccountNo}
+          value={formatAccountNo(transfer.toBank, transfer.toAccountNo)}
           onChange={handleAccountNoChange}
-          placeholder="- 없이 숫자만 입력"
+          placeholder="계좌번호 입력"
           className={inputClass}
         />
 
