@@ -7,8 +7,8 @@
 import { apiRequest } from './apiClient'
 
 // 전체 계좌 목록 조회
-export function getAccounts() {
-  return apiRequest('/accounts')
+export function getAccounts(options = {}) {
+  return apiRequest('/accounts', options)
 }
 
 // 특정 계좌 상세 조회

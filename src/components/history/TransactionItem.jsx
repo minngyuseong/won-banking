@@ -6,12 +6,17 @@ const accountNames = {
   acc3: '우리 청년희망적금',
 }
 
-export function TransactionItem({ transaction }) {
+export function TransactionItem({ transaction, onSelect }) {
   const isDeposit = transaction.type === 'in'
   const isPending = transaction.status === 'pending'
 
   return (
-    <li className="flex cursor-pointer items-center justify-between border-b border-slate-200 px-0.5 py-3 transition-colors hover:-mx-2 hover:rounded-lg hover:bg-blue-50/50 hover:px-2">
+    <li className="border-b border-slate-200">
+      <button
+        type="button"
+        onClick={() => onSelect(transaction)}
+        className="flex w-full cursor-pointer items-center justify-between px-0.5 py-3 text-left transition-colors hover:-mx-2 hover:w-[calc(100%+1rem)] hover:rounded-lg hover:bg-blue-50/50 hover:px-2"
+      >
       <div className="flex min-w-0 items-center gap-2.5">
         <span
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-slate-100 text-base"
@@ -42,6 +47,7 @@ export function TransactionItem({ transaction }) {
           잔액 {amountFormatter.format(transaction.balanceAfter)}원
         </p>
       </div>
+      </button>
     </li>
   )
 }

@@ -7,7 +7,7 @@ import { AssetCard } from '../components/home/AssetCard'
 import { QuickMenu } from '../components/home/QuickMenu'
 import { AccountList } from '../components/home/AccountList'
 import { RecentTransactions } from '../components/home/RecentTransactions'
-import { TransactionDetailModal } from '../components/home/TransactionDetailModal'
+import { TransactionDetailModal } from '../components/common/TransactionDetailModal'
 
 export default function HomePage() {
   const [accounts, setAccounts] = useState([])

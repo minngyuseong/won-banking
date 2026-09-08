@@ -11,7 +11,7 @@ function groupTransactionsByDate(transactions) {
     }, [])
 }
 
-export function TransactionList({ transactions }) {
+export function TransactionList({ transactions, onSelectTransaction }) {
   const groups = groupTransactionsByDate(transactions)
 
   if (groups.length === 0) {
@@ -27,7 +27,11 @@ export function TransactionList({ transactions }) {
           </h3>
           <ul>
             {group.transactions.map((transaction) => (
-              <TransactionItem key={transaction.id} transaction={transaction} />
+              <TransactionItem
+                key={transaction.id}
+                transaction={transaction}
+                onSelect={onSelectTransaction}
+              />
             ))}
           </ul>
         </section>
