@@ -13,14 +13,14 @@ export function Header() {
 
   return (
     <header className="flex shrink-0 items-center justify-between border-b border-slate-100 bg-white px-4 py-3">
-      <div className="flex items-center gap-0.5">
+      <div className="flex items-center gap-0">
         {/* Vite가 src/assets/logo.png를 번들에 넣고, 해시된 URL을 만들어 준다. */}
         <img
           src={logo}
           alt="우리금융그룹"
-          className="h-8 w-8 rounded-lg object-contain"
+          className="h-11 w-11   rounded-lg object-contain"
         />
-        <h1 className="bagel-fat-one-regular text-[22px] tracking-tight text-brand-navy">
+        <h1 className="bagel-fat-one-regular text-[21px] tracking-tight text-brand-navy">
           WON 실습뱅킹
         </h1>
       </div>
