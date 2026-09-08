@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { formatWon } from './formatWon'
 
 export function TransactionDetailModal({
@@ -6,6 +7,47 @@ export function TransactionDetailModal({
   onClose,
 }) {
   const sign = transaction.type === 'out' ? '-' : '+'
+  const dialogRef = useRef(null)
+  const closeButtonRef = useRef(null)
+
+  useEffect(() => {
+    closeButtonRef.current?.focus()
+
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') {
+        onClose()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [transaction, onClose])
+
+  function handleDialogKeyDown(event) {
+    if (event.key !== 'Tab') return
+
+    const focusableElements = dialogRef.current?.querySelectorAll(
+      'button:not([disabled])',
+    )
+
+    if (!focusableElements?.length) return
+
+    const firstElement = focusableElements[0]
+    const lastElement = focusableElements[focusableElements.length - 1]
+
+    if (event.shiftKey && document.activeElement === firstElement) {
+      event.preventDefault()
+      lastElement.focus()
+    }
+
+    if (!event.shiftKey && document.activeElement === lastElement) {
+      event.preventDefault()
+      firstElement.focus()
+    }
+  }
 
   return (
     <div
@@ -13,11 +55,14 @@ export function TransactionDetailModal({
       onClick={onClose}
     >
       <section
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="transaction-title"
-        className="w-full rounded-t-[22px] bg-white px-[22px] pb-[26px] pt-[10px]"
+        tabIndex="-1"
         onClick={(event) => event.stopPropagation()}
+        onKeyDown={handleDialogKeyDown}
+        className="w-full rounded-t-[22px] bg-white px-[22px] pb-[26px] pt-[10px]"
       >
         <div className="mx-auto mb-[18px] mt-[6px] h-1 w-9 rounded-full bg-slate-300" />
 
@@ -72,6 +117,7 @@ export function TransactionDetailModal({
         </button>
 
         <button
+          ref={closeButtonRef}
           type="button"
           onClick={onClose}
           className="mt-[18px] w-full rounded-xl bg-slate-100 py-[13px] text-[14px] font-bold text-slate-700"
