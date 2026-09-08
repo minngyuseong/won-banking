@@ -1,6 +1,4 @@
-import { useEffect, useState } from 'react'
-import { getTransactions } from '../api/transactionApi'
-import { TransactionList } from '../components/history/TransactionList'
+import AccountsFilter from '../components/history/AccountsFilter'
 
 export default function HistoryPage() {
   const [transactions, setTransactions] = useState([])
