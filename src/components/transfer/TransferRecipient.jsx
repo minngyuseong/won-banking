@@ -1,14 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import { getAccounts } from '../../api/accountApi'
 import { getBanks, lookupOwner } from '../../api/transferApi'
+import { formatAccountNo } from '../../utils/accountFormatter'
+import { SelectBox } from '../common/SelectBox'
 
 /**
  * 이체 1단계.
  *
  * 출금 계좌와 받는 계좌 정보를 입력하고
- * 입력한 은행과 계좌번호를 기준으로 예금주를 조회한다.
+ * 은행과 계좌번호 조합으로 예금주를 확인한다.
  *
- * 예금주 확인이 완료된 경우에만 다음 단계로 이동할 수 있다.
+ * 은행 또는 계좌번호가 변경되면 기존 조회 결과를 초기화하고
+ * 현재 입력값을 기준으로 예금주를 다시 조회한다.
  */
 export default function TransferRecipient({ transfer, setTransfer, onNext }) {
   const [accounts, setAccounts] = useState([])
@@ -16,7 +19,6 @@ export default function TransferRecipient({ transfer, setTransfer, onNext }) {
   const [error, setError] = useState('')
   const [isLookingUp, setIsLookingUp] = useState(false)
 
-  const lookupTimer = useRef(null)
   const requestSeq = useRef(0)
 
   // 화면 진입 시 출금 계좌와 이체 가능 은행 목록 조회
@@ -31,80 +33,113 @@ export default function TransferRecipient({ transfer, setTransfer, onNext }) {
         setAccounts(accountData)
         setBanks(bankData)
 
-        setTransfer(prev => ({
-          ...prev,
-          fromAccountId: prev.fromAccountId || accountData[0]?.id || '',
-          toBank: prev.toBank || bankData[0]?.name || '',
-        }))
+        setTransfer(prev => {
+          const defaultAccount =
+            accountData.find(account => account.id === prev.fromAccountId) ||
+            accountData[0] ||
+            null
+
+          return {
+            ...prev,
+            fromAccountId: defaultAccount?.id || '',
+            fromAccount: defaultAccount,
+            toBank: prev.toBank || bankData[0]?.name || '',
+          }
+        })
       } catch (error) {
         setError(error.message)
       }
     }
 
     loadData()
-
-    return () => clearTimeout(lookupTimer.current)
   }, [])
 
-  const handleFromAccountChange = (e) => {
-    setTransfer(prev => ({ ...prev, fromAccountId: e.target.value }))
-  }
+  // 은행 또는 계좌번호 변경 시 현재 조합으로 예금주 재조회
+  useEffect(() => {
+    const bank = transfer.toBank
+    const accountNo = transfer.toAccountNo
 
-  // 은행이 변경되면 기존 예금주 확인 결과는 무효화
-  const handleBankChange = (e) => {
-    requestSeq.current += 1
-    clearTimeout(lookupTimer.current)
-
-    setTransfer(prev => ({
-      ...prev,
-      toBank: e.target.value,
-      ownerName: '',
-    }))
+    setTransfer(prev =>
+      prev.ownerName ? { ...prev, ownerName: '' } : prev
+    )
 
     setError('')
-    setIsLookingUp(false)
-  }
+    const currentSeq = ++requestSeq.current
 
-  // 계좌번호는 숫자만 입력받고, 일정 길이 이상이면 예금주 조회
-  const handleAccountNoChange = (e) => {
-    const accountNo = e.target.value.replace(/[^0-9]/g, '')
-
-    requestSeq.current += 1
-    const currentSeq = requestSeq.current
-    clearTimeout(lookupTimer.current)
-
-    setTransfer(prev => ({
-      ...prev,
-      toAccountNo: accountNo,
-      ownerName: '',
-    }))
-
-    setError('')
-    setIsLookingUp(false)
-
-    if (accountNo.length < 10) return
+    // 조회하기에 계좌번호가 너무 짧으면 API를 호출하지 않음
+    if (!bank || accountNo.length < 10) {
+      setIsLookingUp(false)
+      return
+    }
 
     setIsLookingUp(true)
 
-    lookupTimer.current = setTimeout(async () => {
+    const timer = setTimeout(async () => {
       try {
-        const data = await lookupOwner(transfer.toBank, accountNo)
+        const data = await lookupOwner(bank, accountNo)
 
-        // 입력값이 변경된 후 도착한 이전 요청의 응답은 무시
+        // 조회 중 은행이나 계좌번호가 다시 변경된 경우 이전 결과 무시
         if (currentSeq !== requestSeq.current) return
 
-        setTransfer(prev => ({ ...prev, ownerName: data.ownerName }))
+        setTransfer(prev => ({
+          ...prev,
+          ownerName: data.ownerName,
+        }))
       } catch (error) {
         if (currentSeq !== requestSeq.current) return
         setError(error.message)
       } finally {
-        if (currentSeq === requestSeq.current) setIsLookingUp(false)
+        if (currentSeq === requestSeq.current) {
+          setIsLookingUp(false)
+        }
       }
     }, 400)
+
+    return () => clearTimeout(timer)
+  }, [transfer.toBank, transfer.toAccountNo])
+
+  // 출금 계좌 변경 시 계좌 객체도 함께 저장
+  const handleFromAccountChange = (accountId) => {
+    const account = accounts.find(account => account.id === accountId)
+
+    setTransfer(prev => ({
+      ...prev,
+      fromAccountId: account?.id || '',
+      fromAccount: account || null,
+    }))
+  }
+
+  // 받는 은행 변경
+  const handleBankChange = (bank) => {
+    setTransfer(prev => ({
+      ...prev,
+      toBank: bank,
+    }))
+  }
+
+  // 화면에는 '-'가 표시되지만 실제 상태에는 숫자만 저장
+  const handleAccountNoChange = (e) => {
+    const accountNo = e.target.value.replace(/[^0-9]/g, '')
+
+    setTransfer(prev => ({
+      ...prev,
+      toAccountNo: accountNo,
+    }))
   }
 
   const inputClass =
     'w-full rounded-[12px] border-[1.5px] border-transparent bg-[#f5f7f9] px-[14px] py-[13px] text-[14.5px] font-semibold text-[#1a1d21] outline-none transition focus:border-[#1e88d6] focus:bg-white'
+
+  const accountOptions = accounts.map(account => ({
+    value: account.id,
+    label: `${account.nickname} (${account.balance.toLocaleString()}원)`,
+  }))
+
+  // value도 bank.name으로 사용해야 은행 변경 시 계좌번호 포맷이 즉시 변경된다.
+  const bankOptions = banks.map(bank => ({
+    value: bank.name,
+    label: bank.name,
+  }))
 
   return (
     <div className="bg-white px-5 py-2">
@@ -117,39 +152,49 @@ export default function TransferRecipient({ transfer, setTransfer, onNext }) {
       </p>
 
       <div className="mb-[18px]">
-        <label className="mb-2 block text-[12px] font-bold text-[#40464d]">출금 계좌</label>
-        <select value={transfer.fromAccountId} onChange={handleFromAccountChange} className={inputClass}>
-          {accounts.map(account => (
-            <option key={account.id} value={account.id}>
-              {account.nickname} ({account.balance.toLocaleString()}원)
-            </option>
-          ))}
-        </select>
+        <label className="mb-2 block text-[12px] font-bold text-[#40464d]">
+          출금 계좌
+        </label>
+
+        <SelectBox
+          value={transfer.fromAccountId}
+          options={accountOptions}
+          onChange={handleFromAccountChange}
+          placeholder="출금 계좌를 선택해주세요"
+        />
       </div>
 
       <div className="mb-[18px]">
-        <label className="mb-2 block text-[12px] font-bold text-[#40464d]">받는 은행</label>
-        <select value={transfer.toBank} onChange={handleBankChange} className={inputClass}>
-          {banks.map(bank => (
-            <option key={bank.code} value={bank.name}>
-              {bank.name}
-            </option>
-          ))}
-        </select>
+        <label className="mb-2 block text-[12px] font-bold text-[#40464d]">
+          받는 은행
+        </label>
+
+        <SelectBox
+          value={transfer.toBank}
+          options={bankOptions}
+          onChange={handleBankChange}
+          placeholder="은행을 선택해주세요"
+        />
       </div>
 
       <div className="mb-[18px]">
-        <label className="mb-2 block text-[12px] font-bold text-[#40464d]">계좌번호</label>
+        <label className="mb-2 block text-[12px] font-bold text-[#40464d]">
+          계좌번호
+        </label>
+
         <input
           type="text"
-          value={transfer.toAccountNo}
+          inputMode="numeric"
+          value={formatAccountNo(transfer.toBank, transfer.toAccountNo)}
           onChange={handleAccountNoChange}
-          placeholder="- 없이 숫자만 입력 (예: 1002123456789)"
+          placeholder="계좌번호 입력"
           className={inputClass}
         />
 
         {isLookingUp && (
-          <p className="mt-[6px] text-[11.5px] text-[#6b7280]">예금주 조회 중...</p>
+          <p className="mt-[6px] text-[11.5px] text-[#6b7280]">
+            예금주 조회 중...
+          </p>
         )}
 
         {transfer.ownerName && (
@@ -159,7 +204,9 @@ export default function TransferRecipient({ transfer, setTransfer, onNext }) {
         )}
 
         {error && (
-          <p className="mt-[6px] text-[11.5px] text-[#e8483a]">{error}</p>
+          <p className="mt-[6px] text-[11.5px] text-[#e8483a]">
+            {error}
+          </p>
         )}
       </div>
 
