@@ -1,16 +1,37 @@
-import { DomainPlaceholder } from '../components/common/DomainPlaceholder'
+import { useEffect, useState } from 'react'
+import { getTransactions } from '../api/transactionApi'
+import { TransactionList } from '../components/history/TransactionList'
 
-/**
- * 거래내역 도메인 페이지. 라우트: `/history`
- *
- * 입출금 목록을 보여줄 빈 화면이다.
- * 지금은 탭 이동 확인용이며, 목록/필터는 이후 이슈에서 구현한다.
- */
 export default function HistoryPage() {
+  const [transactions, setTransactions] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadTransactions() {
+      try {
+        const data = await getTransactions()
+        if (isMounted) setTransactions(data)
+      } catch (requestError) {
+        if (isMounted) setError(requestError.message)
+      } finally {
+        if (isMounted) setIsLoading(false)
+      }
+    }
+
+    loadTransactions()
+    return () => { isMounted = false }
+  }, [])
+
   return (
-    <DomainPlaceholder
-      title="거래내역"
-      description="거래내역 화면입니다. 거래 목록과 상세 조회는 이후 이슈에서 구현합니다."
-    />
+    <section className="min-h-full bg-white" aria-label="거래내역">
+      <div>
+        {isLoading && <p className="px-5 py-16 text-center text-[13px] text-slate-500">거래내역을 불러오는 중이에요.</p>}
+        {!isLoading && error && <p role="alert" className="px-5 py-16 text-center text-[13px] text-red-500">{error}</p>}
+        {!isLoading && !error && <TransactionList transactions={transactions} />}
+      </div>
+    </section>
   )
 }
