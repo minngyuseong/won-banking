@@ -1,1 +1,27 @@
 @import "tailwindcss";
+
+/*
+  WON 실습뱅킹 공통 색상.
+
+  brand: 활성 탭, 버튼, 포커스처럼 “눌러지는” 포인트.
+  brand-navy: 헤더 앱 이름처럼 브랜드를 보여주는 잉크 네이비.
+  예전 #0067ac는 두 토큰이 같아서 제목·탭이 같은 중간 파랑으로 보였다.
+*/
+@theme {
+  --color-brand: #1a6fb5;
+  --color-brand-navy: #0e3558;
+  --color-bell: #e4b23a;
+  --color-surface: #f3f5f8;
+  --color-nav-inactive: #9aa3b2;
+}
+
+body {
+  margin: 0;
+}
+
+/* 헤더 앱 이름 전용. Google Fonts Bagel Fat One */
+.bagel-fat-one-regular {
+  font-family: "Bagel Fat One", system-ui;
+  font-weight: 400;
+  font-style: normal;
+}
