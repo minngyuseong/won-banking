@@ -7,8 +7,9 @@ import TransferComplete from '../components/transfer/TransferComplete'
 /**
  * 이체 도메인 페이지. 라우트: `/transfer`
  *
- * 계좌 이체의 전체 흐름과 단계 상태를 관리한다.
- * 각 단계는 별도 컴포넌트로 구성하며 현재 단계에 해당하는 컴포넌트만 화면에 렌더링한다.
+ * 계좌 이체의 전체 흐름과 입력 상태를 관리한다.
+ * 각 단계는 별도 컴포넌트로 구성하며
+ * 입력한 이체 정보는 단계가 변경되어도 유지한다.
  *
  * 이체 단계:
  * 1. 받는 계좌 입력
@@ -18,17 +19,28 @@ import TransferComplete from '../components/transfer/TransferComplete'
  */
 export default function TransferPage() {
   const [step, setStep] = useState(1)
+  const [transfer, setTransfer] = useState({
+    fromAccountId: '',
+    toBank: '우리은행',
+    toAccountNo: '',
+    ownerName: '',
+    amount: 0,
+  })
 
   return (
     <>
       {step === 1 && (
         <TransferRecipient
+          transfer={transfer}
+          setTransfer={setTransfer}
           onNext={() => setStep(2)}
         />
       )}
 
       {step === 2 && (
         <TransferAmount
+          transfer={transfer}
+          setTransfer={setTransfer}
           onNext={() => setStep(3)}
           onPrev={() => setStep(1)}
         />
@@ -36,14 +48,13 @@ export default function TransferPage() {
 
       {step === 3 && (
         <TransferConfirm
+          transfer={transfer}
           onNext={() => setStep(4)}
           onPrev={() => setStep(2)}
         />
       )}
 
-      {step === 4 && (
-        <TransferComplete />
-      )}
+      {step === 4 && <TransferComplete />}
     </>
   )
 }
