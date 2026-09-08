@@ -1,13 +1,15 @@
-import { useState } from 'react'
-
 const accountOptions = [
-  '전체계좌',
-  '우리 첫급여통장',
-  '우리 SUPER주거래통장',
-  '우리 청년도약계좌',
+  { label: '전체계좌', value: 'all' },
+  { label: '우리 첫급여통장', value: 'acc1' },
+  { label: '우리 SUPER주거래통장', value: 'acc2' },
+  { label: '우리 청년도약계좌', value: 'acc3' },
 ]
 
-const transactionTypeOptions = ['전체', '입금', '출금']
+const transactionTypeOptions = [
+  { label: '전체', value: 'all' },
+  { label: '입금', value: 'in' },
+  { label: '출금', value: 'out' },
+]
 
 function FilterOptions({ options, selectedOption, onSelect, scrollable = false }) {
   return (
@@ -17,13 +19,13 @@ function FilterOptions({ options, selectedOption, onSelect, scrollable = false }
     >
       <div className={scrollable ? 'flex w-max gap-2' : 'flex flex-wrap gap-2'}>
       {options.map((option) => {
-        const isSelected = selectedOption === option
+        const isSelected = selectedOption === option.value
 
         return (
           <button
-            key={option}
+            key={option.value}
             type="button"
-            onClick={() => onSelect(option)}
+            onClick={() => onSelect(option.value)}
             aria-pressed={isSelected}
             className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-colors ${
               isSelected
@@ -31,7 +33,7 @@ function FilterOptions({ options, selectedOption, onSelect, scrollable = false }
                 : 'bg-surface text-black hover:bg-slate-200'
             }`}
           >
-            {option}
+            {option.label}
           </button>
         )
       })}
@@ -40,18 +42,15 @@ function FilterOptions({ options, selectedOption, onSelect, scrollable = false }
   )
 }
 
-export default function AccountsFilter() {
-  const [account, setAccount] = useState('전체계좌')
-  const [type, setType] = useState('전체')
-
+export default function AccountsFilter({ accountId, type, onAccountChange, onTypeChange }) {
   return (
     <section className="space-y-5" aria-label="거래내역 필터">
       <div className="space-y-2">
      
         <FilterOptions
           options={accountOptions}
-          selectedOption={account}
-          onSelect={setAccount}
+          selectedOption={accountId}
+          onSelect={onAccountChange}
           scrollable
         />
       </div>
@@ -61,7 +60,7 @@ export default function AccountsFilter() {
         <FilterOptions
           options={transactionTypeOptions}
           selectedOption={type}
-          onSelect={setType}
+          onSelect={onTypeChange}
         />
       </div>
     </section>

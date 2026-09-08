@@ -21,7 +21,7 @@ export function TransactionList({ transactions }) {
   return (
     <div>
       {groups.map((group) => (
-        <section key={group.date} className="px-5" aria-labelledby={`transaction-date-${group.date}`}>
+        <section key={group.date} aria-labelledby={`transaction-date-${group.date}`}>
           <h3 id={`transaction-date-${group.date}`} className="mb-1.5 mt-4 text-[11.5px] font-bold text-slate-500">
             {group.date}
           </h3>

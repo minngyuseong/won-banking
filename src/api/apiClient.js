@@ -14,8 +14,12 @@ export async function apiRequest(path, options = {}) {
       headers: { 'Content-Type': 'application/json' },
       ...options,
     })
-  } catch {
-    throw new Error('서버에 연결할 수 없습니다.')
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      throw error
+    }
+
+    throw new Error('서버에 연결할 수 없습니다.', { cause: error })
   }
 
   let data = null

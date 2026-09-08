@@ -8,7 +8,7 @@
 import { apiRequest } from './apiClient'
 
 // 거래내역 목록 조회
-export function getTransactions(params = {}) {
+export function getTransactions(params = {}, options = {}) {
   const searchParams = new URLSearchParams()
 
   if (params.accountId) {
@@ -26,7 +26,8 @@ export function getTransactions(params = {}) {
   const query = searchParams.toString()
 
   return apiRequest(
-    `/transactions${query ? `?${query}` : ''}`
+    `/transactions${query ? `?${query}` : ''}`,
+    options,
   )
 }
 
