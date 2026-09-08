@@ -80,7 +80,7 @@ export default function HomePage() {
           <button
             type="button"
             onClick={loadHomeData}
-            className="mt-3 rounded-lg bg-[#0067ac] px-4 py-2 text-[12px] font-bold text-white"
+            className="mt-3 rounded-lg bg-brand px-4 py-2 text-[12px] font-bold text-white"
           >
             다시 시도
           </button>

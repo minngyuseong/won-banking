@@ -36,7 +36,7 @@ export function AccountList({ accounts, isHidden }) {
               <button
                 type="button"
                 onClick={() => goToAccountHistory(account.id)}
-                className="flex w-full items-center justify-between rounded-[14px] border border-slate-200 bg-white px-4 py-3.5 text-left transition hover:border-[#1e88d6] hover:bg-white active:scale-[0.98] focus-visible:border-[#1e88d6] focus-visible:outline-none"
+                className="flex w-full items-center justify-between rounded-[14px] border border-slate-200 bg-white px-4 py-3.5 text-left transition hover:border-brand hover:bg-white active:scale-[0.98] focus-visible:border-brand focus-visible:outline-none"
                 aria-label={`${account.nickname} 거래내역 보기`}
               >
                 <span>

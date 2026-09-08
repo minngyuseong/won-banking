@@ -47,7 +47,7 @@ export function QuickMenu() {
                             onClick={menu.onClick}
                             className="flex w-full flex-col items-center gap-1.5 px-0.5 py-1.5 text-[11px] font-semibold text-slate-700"
                         >
-                            <span className="grid h-11 w-11 place-items-center rounded-[14px] bg-[#f3f8fc] text-[19px] leading-none">
+                            <span className="grid h-11 w-11 place-items-center rounded-[14px] bg-surface text-[19px] leading-none">
                                 {menu.icon}
                             </span>
 

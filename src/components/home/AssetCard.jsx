@@ -7,7 +7,7 @@ export function AssetCard({
   onToggleHidden,
 }) {
   return (
-    <section className="rounded-[18px] bg-[#0067ac] px-[22px] py-5 text-white">
+    <section className="rounded-[18px] bg-brand px-[22px] py-5 text-white">
       <div className="mb-2 flex items-center justify-between">
         <h2 className="text-[13px] font-normal text-white/85">
           총 자산
